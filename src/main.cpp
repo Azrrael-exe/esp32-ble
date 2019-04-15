@@ -12,6 +12,8 @@
 #include <Adafruit_SSD1351.h>
 #include <SPI.h>
 
+#include <logo.h>
+
 // Color definitions
 #define	BLACK           0x0000
 #define	BLUE            0x001F
@@ -26,6 +28,7 @@
 #define TRIGGER_SIGNAL 14
 #define FLASH_SIGNAL 27
 #define LASER_OUTPUT 26
+#define LASER_BUTTON 5
 
 #define CS_PIN   21
 #define RST_PIN  15
@@ -52,6 +55,7 @@ long screen_timer = 0;
 
 uint8_t state = 0;
 uint8_t screen_state = 0;
+bool screen_change = false;
 
 int val = 0;
 
@@ -71,6 +75,15 @@ void showDataSend(){
   tft.print("Data Send");
 }
 
+void laserActivate(){
+  tft.fillScreen(BLACK);
+  tft.setCursor(0,0);
+  tft.setTextSize(2);
+  tft.setTextColor(WHITE);
+  tft.print("Laser\nOn!\n\n");
+}
+
+
 void initialScreen(){
   tft.fillScreen(BLACK);
   tft.setCursor(0,0);
@@ -86,9 +99,6 @@ void setup() {
   digitalWrite(CS_PIN, HIGH);
      
   tft.begin();
-
-  Serial.println("init");
-
 
   INCL.configSPI();
   delay(100);                   // Give the part time to start up
@@ -146,19 +156,24 @@ void setup() {
   pinMode(TRIGGER_BUTTON, INPUT);
   pinMode(TRIGGER_SIGNAL, OUTPUT);
   pinMode(FLASH_SIGNAL, OUTPUT);
+  pinMode(LASER_BUTTON, INPUT);
+
+  tft.fillScreen(BLACK);
+  tft.drawBitmap(0, 0, logo, 128, 128, BLUE);
+  delay(4000);
+  screen_change = true;
 }
 
 void loop() {
   if(millis() - batery_timmer > 10000){
     batery_timmer = millis();
-    uint8_t value = random(0,100);
+    float value = (analogRead(A0)/1023)*5.0;
     char buffer[3];
-    sprintf(buffer, "%03d", value);
+    sprintf(buffer, "%0.2f", value);
+    Serial.println(buffer);
     batery->setValue((uint8_t*)buffer, 3);
     batery->notify();
-    char sec_buff[20];
-    sprintf(sec_buff, "Val: %03d", val);
-    Serial.println(sec_buff);
+    
   }
 
   if(millis() - imu_timer > 100){
@@ -169,8 +184,8 @@ void loop() {
     INCY = INCL.inclineScale(INCY);   
   }
 
-  if((millis() - status_timer > 1000) && (screen_state == 0)){
-    status_timer = millis();
+  if((screen_state == 0) && screen_change){
+    screen_change = false;
     initialScreen();
   }
 
@@ -190,6 +205,16 @@ void loop() {
     showCameraTrigger();
   }
   
+  if(digitalRead(LASER_BUTTON) && (state==0)){
+    screen_change = true;
+    laserActivate();
+    digitalWrite(LASER_OUTPUT, HIGH);
+    while (digitalRead(LASER_BUTTON)){
+      ;
+    }   
+    digitalWrite(LASER_OUTPUT, LOW);
+  }
+
   // --- Trigger Secuence ---
   if(state != 0){
     if((state == 1) && (millis() - trigger_timmer >=180)){
