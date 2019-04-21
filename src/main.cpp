@@ -13,29 +13,10 @@
 #include <SPI.h>
 
 #include <logo.h>
+#include <pinout.h>
 
-// Color definitions
-#define	BLACK           0x0000
-#define	BLUE            0x001F
-#define	RED             0xF800
-#define	GREEN           0x07E0
-#define CYAN            0x07FF
-#define MAGENTA         0xF81F
-#define YELLOW          0xFFE0  
-#define WHITE           0xFFFF
-
-#define TRIGGER_BUTTON 17
-#define TRIGGER_SIGNAL 14
-#define FLASH_SIGNAL 27
-#define LASER_OUTPUT 26
-#define LASER_BUTTON 5
-
-#define CS_PIN   21
-#define RST_PIN  15
-#define DC_PIN   2
-
-ADIS16209 INCL(16, 17, 4);
-Adafruit_SSD1351 tft = Adafruit_SSD1351(21, 2, 15);
+ADIS16209 INCL(IMU_CS, IMU_DR, IMU_RST);
+Adafruit_SSD1351 tft = Adafruit_SSD1351(TFT_CS, TFT_DC, TFT_RST);
 
 int INCX = 0;
 int INCY = 0;
@@ -94,9 +75,18 @@ void initialScreen(){
 
 void setup() {
   Serial.begin(115200);
+
+  pinMode(TRIGGER_BUTTON, INPUT);
+  pinMode(TRIGGER_SIGNAL, OUTPUT);
+  pinMode(FLASH_SIGNAL, OUTPUT);
+  pinMode(LASER_BUTTON, INPUT);
+  pinMode(CAMERA_ON, OUTPUT);
+
+  pinMode(TFT_RST, OUTPUT);
+  pinMode(TFT_DC, OUTPUT);
+  pinMode(TFT_CS, OUTPUT);
   
-  pinMode(CS_PIN, OUTPUT);
-  digitalWrite(CS_PIN, HIGH);
+  digitalWrite(TFT_CS, HIGH);
      
   tft.begin();
 
@@ -134,7 +124,6 @@ void setup() {
     BLECharacteristic::PROPERTY_NOTIFY
   );
 
-
   input->addDescriptor(new BLE2902());
   batery->addDescriptor(new BLE2902());
   event->addDescriptor(new BLE2902());
@@ -149,18 +138,12 @@ void setup() {
   advertising->setMinPreferred(0x0);
   BLEDevice::startAdvertising();
 
-  pinMode(4, OUTPUT);
-  pinMode(16, OUTPUT);
-  pinMode(17, INPUT);
-
-  pinMode(TRIGGER_BUTTON, INPUT);
-  pinMode(TRIGGER_SIGNAL, OUTPUT);
-  pinMode(FLASH_SIGNAL, OUTPUT);
-  pinMode(LASER_BUTTON, INPUT);
-
   tft.fillScreen(BLACK);
   tft.drawBitmap(0, 0, logo, 128, 128, BLUE);
-  delay(4000);
+  delay(1000);
+  digitalWrite(CAMERA_ON, HIGH);
+  delay(300);
+  digitalWrite(CAMERA_ON, LOW);
   screen_change = true;
 }
 
@@ -208,11 +191,9 @@ void loop() {
   if(digitalRead(LASER_BUTTON) && (state==0)){
     screen_change = true;
     laserActivate();
-    digitalWrite(LASER_OUTPUT, HIGH);
     while (digitalRead(LASER_BUTTON)){
       ;
-    }   
-    digitalWrite(LASER_OUTPUT, LOW);
+    }
   }
 
   // --- Trigger Secuence ---
