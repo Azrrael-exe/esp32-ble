@@ -1,9 +1,9 @@
-#define TRIGGER_BUTTON 12
-#define LASER_BUTTON 13
+#define TRIGGER_INPUT 12
+#define LASER_INPUT 13
 
-#define TRIGGER_SIGNAL 25
-#define FLASH_SIGNAL 26
-#define CAMERA_ON 32
+#define TRIGGER_OUTPUT 25
+#define FLASH_OUTPUT 26
+#define CAMERA_OUTPUT 32
 
 // SCREEN
 #define TFT_CS  5
@@ -15,8 +15,8 @@
 #define IMU_DR 0
 
 void setIO(){
-    pinMode(TRIGGER_BUTTON, INPUT);
-    pinMode(LASER_BUTTON, INPUT);
+    pinMode(TRIGGER_OUTPUT, INPUT);
+    pinMode(LASER_INPUT, INPUT);
 
     pinMode(TFT_CS, OUTPUT);
     pinMode(TFT_DC, OUTPUT);
@@ -25,13 +25,3 @@ void setIO(){
     pinMode(IMU_CS, OUTPUT);
     pinMode(IMU_RST, OUTPUT);
 }
-
-// Color definitions
-#define	BLACK           0x0000
-#define	BLUE            0x001F
-#define	RED             0xF800
-#define	GREEN           0x07E0
-#define CYAN            0x07FF
-#define MAGENTA         0xF81F
-#define YELLOW          0xFFE0  
-#define WHITE           0xFFFF

@@ -6,17 +6,19 @@
 #include <BLE2902.h>
 
 #include <callbacks.h>
-
+#include <screen_handler.h>
 #include <ADIS16209.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1351.h>
-#include <SPI.h>
-
-#include <logo.h>
 #include <pinout.h>
 
+#include <io.h>
+
+IO laser = IO(NULL, LASER_INPUT);
+IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
+IO flash = IO(FLASH_OUTPUT, NULL);
+IO camera = IO(CAMERA_OUTPUT, NULL);
+
 ADIS16209 INCL(IMU_CS, IMU_DR, IMU_RST);
-Adafruit_SSD1351 tft = Adafruit_SSD1351(TFT_CS, TFT_DC, TFT_RST);
+ScreenHandler tft = ScreenHandler(TFT_CS, TFT_DC, TFT_RST);
 
 int INCX = 0;
 int INCY = 0;
@@ -29,66 +31,21 @@ BLECharacteristic* event = NULL;
 
 long batery_timmer = millis();
 long imu_timer = millis();
-long status_timer = millis();
 
 long trigger_timmer = 0;
 long screen_timer = 0;
 
 uint8_t state = 0;
 uint8_t screen_state = 0;
-bool screen_change = false;
 
 int val = 0;
-
-void showCameraTrigger(){
-  tft.fillScreen(BLACK);
-  tft.setCursor(0,0);
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  tft.print("Camera \nTrigger");
-}
-
-void showDataSend(){
-  tft.fillScreen(BLACK);
-  tft.setCursor(0,0);
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  tft.print("Data Send");
-}
-
-void laserActivate(){
-  tft.fillScreen(BLACK);
-  tft.setCursor(0,0);
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  tft.print("Laser\nOn!\n\n");
-}
-
-
-void initialScreen(){
-  tft.fillScreen(BLACK);
-  tft.setCursor(0,0);
-  tft.setTextSize(2);
-  tft.setTextColor(WHITE);
-  tft.print("System \nReady\n\n");
-}
 
 void setup() {
   Serial.begin(115200);
 
-  pinMode(TRIGGER_BUTTON, INPUT);
-  pinMode(TRIGGER_SIGNAL, OUTPUT);
-  pinMode(FLASH_SIGNAL, OUTPUT);
-  pinMode(LASER_BUTTON, INPUT);
-  pinMode(CAMERA_ON, OUTPUT);
-
-  pinMode(TFT_RST, OUTPUT);
-  pinMode(TFT_DC, OUTPUT);
-  pinMode(TFT_CS, OUTPUT);
-  
-  digitalWrite(TFT_CS, HIGH);
+  setIO();
      
-  tft.begin();
+  tft.init(BLACK);
 
   INCL.configSPI();
   delay(100);                   // Give the part time to start up
@@ -138,27 +95,32 @@ void setup() {
   advertising->setMinPreferred(0x0);
   BLEDevice::startAdvertising();
 
-  tft.fillScreen(BLACK);
-  tft.drawBitmap(0, 0, logo, 128, 128, BLUE);
+  tft.splash();
   delay(1000);
-  digitalWrite(CAMERA_ON, HIGH);
+  camera.change(true);
   delay(300);
-  digitalWrite(CAMERA_ON, LOW);
-  screen_change = true;
+  camera.change(false);
+  delay(700);
+  tft.splash(true);
+  tft.initScreen();
+  delay(3000);
+  tft.initScreen(true);
+  tft.base();
 }
 
 void loop() {
+  // --- Battery update task --- 
   if(millis() - batery_timmer > 10000){
     batery_timmer = millis();
-    float value = (analogRead(A0)/1023)*5.0;
-    char buffer[3];
-    sprintf(buffer, "%0.2f", value);
+    int value = map(analogRead(A0),0 , 1023, 0, 99);
+    char buffer[2];
+    sprintf(buffer, "%02i", value);
     Serial.println(buffer);
-    batery->setValue((uint8_t*)buffer, 3);
+    batery->setValue((uint8_t*)buffer, 2);
     batery->notify();
-    
+    tft.battery(value);
   }
-
+  // --- IMU read task ---
   if(millis() - imu_timer > 100){
     imu_timer = millis();
     INCX = INCL.regRead(XINCL_OUT);
@@ -167,74 +129,66 @@ void loop() {
     INCY = INCL.inclineScale(INCY);   
   }
 
-  if((screen_state == 0) && screen_change){
-    screen_change = false;
-    initialScreen();
+  // --- Laser read Task ---
+  if(laser.hasChanged()){
+    Serial.println(laser.readInput());
+    tft.laser(!laser.readInput());
   }
 
-  if(digitalRead(TRIGGER_BUTTON) && (state==0)){
-    Serial.print("State: ");Serial.println(state);
-    
+  // --- Camera Trigger ---
+  if(trigger.readInput() && (state==0)){
+
+    Serial.println("trigger input!");
+    trigger.updateTimer();
+    tft.updateTimer();
+
     state = 1;
-    screen_state = 1;
-    trigger_timmer = millis();
 
     char imu_buffer[7];
     sprintf(imu_buffer,"%03d,%03d", INCX, INCY);
     event->setValue((uint8_t*)imu_buffer, 7);
     event->notify();
-    Serial.println(imu_buffer);
-    
-    showCameraTrigger();
-  }
-  
-  if(digitalRead(LASER_BUTTON) && (state==0)){
-    screen_change = true;
-    laserActivate();
-    while (digitalRead(LASER_BUTTON)){
-      ;
-    }
   }
 
-  // --- Trigger Secuence ---
-  if(state != 0){
-    if((state == 1) && (millis() - trigger_timmer >=180)){
-      Serial.print("State: ");Serial.println(state);
+  if(state == 1){
+    if((trigger.readTimer() >= 180) && (!trigger.isActive())){
+      trigger.updateTimer();
+      trigger.change(true);
+      flash.updateTimer();
+    }
+
+    if((flash.readTimer()>=10) && (!flash.isActive())){
+      flash.change(true);
+      flash.updateTimer();
+    }
+
+    if((flash.readTimer()>=100) && (flash.isActive())){
+      flash.change(false);
+    }
+
+    if((trigger.readTimer() >= 300) && (trigger.isActive())){
+      trigger.change(false);
       state = 2;
-      trigger_timmer = millis();
-      digitalWrite(TRIGGER_SIGNAL, 1);
-    }
-    if((state == 2) && (millis()-trigger_timmer >= 10)){
-      Serial.print("State: ");Serial.println(state);
-      state = 3;
-      digitalWrite(TRIGGER_SIGNAL, 0);
-      digitalWrite(FLASH_SIGNAL, 1);
-    }
-    if((state == 3) && (millis()-trigger_timmer >= 10)){
-      Serial.print("State: ");Serial.println(state);
-      state = 0;
-      digitalWrite(FLASH_SIGNAL, 0);
     }
   }
 
   // --- Screen Handling ---
-  if(screen_state != 0){
-    if(screen_state == 1){
-      Serial.print("Screen State: ");Serial.println(screen_state);
-      screen_state = 2;
-      screen_timer = millis();
-      showCameraTrigger();
-    }
-    if((screen_state == 2) && (millis()-screen_timer >= 2000)){
-      Serial.print("Screen State: ");Serial.println(screen_state);
-      screen_state = 3;
-      screen_timer = millis();
-      showDataSend();
-    }
-    if((screen_state == 3) && (millis()-screen_timer >= 2000)){
-      Serial.print("Screen State: ");Serial.println(screen_state);
-      screen_state = 0;
-      initialScreen();
-    }
+
+  if((state == 1) && (tft.getState()==0)){
+    tft.updateTimer();
+    tft.base(true);
+    tft.imageTaken();
   }
+  if((state == 2) && (tft.getState()==1) && (tft.readTimer()>=1500)){
+    tft.updateTimer();
+    tft.imageTaken(true);
+    tft.imageTransfer();
+  }
+  if((state == 2) && (tft.getState()==2) && (tft.readTimer()>=4000)){
+    tft.updateTimer();
+    tft.imageTransfer(true);
+    tft.base();
+    state = 0;
+  }
+
 }
