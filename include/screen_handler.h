@@ -27,6 +27,7 @@ class ScreenHandler: public Adafruit_SSD1351 {
         void laser(bool clear, int color);
         void imageTaken(bool clear, int color);
         void imageTransfer(bool clear, int color);
+        void charging(int state);
         void splash(bool clear);
         void battery(int value);
         void updateTimer();
@@ -114,6 +115,27 @@ void ScreenHandler::battery(int value){
     char buffer[3];
     sprintf(buffer, "%02i%%", value);
     this->print(buffer);
+    this->setTextSize(2);
+}
+
+void ScreenHandler::charging(int state = 0){
+    this->fillRect(105, 102, 115, 112, backgroud);
+    this->setTextSize(1);
+    switch (state) {
+    case 1: // Charging
+        this->setCursor(75, 102);
+        this->setTextColor(RED);
+        this->print("Charging");
+        break;
+    case 2: // Full Charge
+        this->setCursor(55, 102);
+        this->setTextColor(GREEN);
+        this->print("Full Charge");
+        break;
+    default: // Clear
+        this->fillRect(55, 102, 120, 112, backgroud);
+        break;
+    }
     this->setTextSize(2);
 }
 

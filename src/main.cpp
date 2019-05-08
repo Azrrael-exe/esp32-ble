@@ -10,12 +10,19 @@
 #include <ADIS16209.h>
 #include <pinout.h>
 
+#include <battery.h>
+
 #include <io.h>
 
 IO laser = IO(NULL, LASER_INPUT);
 IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
 IO flash = IO(FLASH_OUTPUT, NULL);
 IO camera = IO(CAMERA_OUTPUT, NULL);
+
+IO charging = IO(NULL ,CHARGING_INPUT);
+IO battery_ready = IO(NULL, BREADY_INPUT);
+
+Battery battery = Battery(BATTERY_INPUT);
 
 ADIS16209 INCL(IMU_CS, IMU_DR, IMU_RST);
 ScreenHandler tft = ScreenHandler(TFT_CS, TFT_DC, TFT_RST);
@@ -110,16 +117,21 @@ void setup() {
 
 void loop() {
   // --- Battery update task --- 
-  if(millis() - batery_timmer > 10000){
-    batery_timmer = millis();
-    int value = map(analogRead(A0),0 , 1023, 0, 99);
-    char buffer[2];
-    sprintf(buffer, "%02i", value);
-    Serial.println(buffer);
-    batery->setValue((uint8_t*)buffer, 2);
-    batery->notify();
-    tft.battery(value);
+  if(battery.readTimer() >= 1000){
+    battery.updateTimer();
+    battery.iterate();
+    if(battery.isReady()){
+      int value = battery.readBattery();
+      char buffer[2];
+      sprintf(buffer, "%02i", value);
+      Serial.println(buffer);
+      batery->setValue((uint8_t*)buffer, 2);
+      batery->notify();
+      tft.battery(value);
+    }
+
   }
+
   // --- IMU read task ---
   if(millis() - imu_timer > 100){
     imu_timer = millis();
@@ -149,6 +161,21 @@ void loop() {
     event->setValue((uint8_t*)imu_buffer, 7);
     event->notify();
   }
+
+  // --- Battery Charging ---
+  if(charging.hasChanged() || battery_ready.hasChanged()){
+    int charging_state = 0;
+    if(battery_ready.readInput()){
+      charging_state = 2;
+    }
+    else if(charging.readInput()){
+      charging_state = 1;
+    }
+    tft.charging(charging_state);
+  }
+
+  // --- Battery Full ---
+  
 
   if(state == 1){
     if((trigger.readTimer() >= 180) && (!trigger.isActive())){
@@ -190,5 +217,4 @@ void loop() {
     tft.base();
     state = 0;
   }
-
 }
