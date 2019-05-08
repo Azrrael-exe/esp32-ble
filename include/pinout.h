@@ -5,6 +5,10 @@
 #define FLASH_OUTPUT 26
 #define CAMERA_OUTPUT 32
 
+#define BATTERY_INPUT 33
+#define CHARGING_INPUT 37
+#define BREADY_INPUT 38
+
 // SCREEN
 #define TFT_CS  5
 #define TFT_DC  10
@@ -17,6 +21,9 @@
 void setIO(){
     pinMode(TRIGGER_OUTPUT, INPUT);
     pinMode(LASER_INPUT, INPUT);
+
+    pinMode(CHARGING_INPUT, INPUT);
+    pinMode(BREADY_INPUT, INPUT);
 
     pinMode(TFT_CS, OUTPUT);
     pinMode(TFT_DC, OUTPUT);
