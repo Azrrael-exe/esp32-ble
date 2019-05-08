@@ -7,12 +7,12 @@ class IO {
         long readTimer();
         bool readInput();
         bool hasChanged();
+        bool activate;
     private:
         bool output_state;
         bool input_state;
         int ipin;
         int opin;
-        bool activate;
         long timer;
         bool has_changed;
 };
@@ -21,6 +21,7 @@ IO::IO(int opin, int ipin){
     this->opin = opin;
     this->ipin = ipin;
     this->output_state = false;
+    this->activate = false;
     pinMode(opin, OUTPUT);
     pinMode(ipin, INPUT);
     digitalWrite(this->opin, this->output_state);
