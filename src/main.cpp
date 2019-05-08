@@ -10,12 +10,16 @@
 #include <ADIS16209.h>
 #include <pinout.h>
 
+#include <battery.h>
+
 #include <io.h>
 
 IO laser = IO(NULL, LASER_INPUT);
 IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
 IO flash = IO(FLASH_OUTPUT, NULL);
 IO camera = IO(CAMERA_OUTPUT, NULL);
+
+Battery battery = Battery(BATTERY_INPUT);
 
 ADIS16209 INCL(IMU_CS, IMU_DR, IMU_RST);
 ScreenHandler tft = ScreenHandler(TFT_CS, TFT_DC, TFT_RST);
@@ -110,15 +114,19 @@ void setup() {
 
 void loop() {
   // --- Battery update task --- 
-  if(millis() - batery_timmer > 10000){
-    batery_timmer = millis();
-    int value = map(analogRead(A0),0 , 1023, 0, 99);
-    char buffer[2];
-    sprintf(buffer, "%02i", value);
-    Serial.println(buffer);
-    batery->setValue((uint8_t*)buffer, 2);
-    batery->notify();
-    tft.battery(value);
+  if(battery.readTimer() >= 1000){
+    battery.updateTimer();
+    battery.iterate();
+    if(battery.isReady()){
+      int value = battery.readBattery();
+      char buffer[2];
+      sprintf(buffer, "%02i", value);
+      Serial.println(buffer);
+      batery->setValue((uint8_t*)buffer, 2);
+      batery->notify();
+      tft.battery(value);
+    }
+
   }
   // --- IMU read task ---
   if(millis() - imu_timer > 100){

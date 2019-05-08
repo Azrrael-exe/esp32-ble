@@ -5,6 +5,8 @@
 #define FLASH_OUTPUT 26
 #define CAMERA_OUTPUT 32
 
+#define BATTERY_INPUT 33
+
 // SCREEN
 #define TFT_CS  5
 #define TFT_DC  10
