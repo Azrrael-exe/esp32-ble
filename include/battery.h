@@ -29,13 +29,14 @@ Battery::Battery(int pin){
 }
 
 float Battery::readAdc(){
-    float vol = adc1_get_raw(ADC1_CHANNEL_7) * (5.0/4096);
-    return vol;
+    // int vol = adc1_get_raw(ADC1_CHANNEL_7);
+    int vol = analogRead(35);
+    Serial.print("vol:");Serial.println(vol);
+    return vol * (5.0/4096);
 }
 
 void Battery::iterate(){
     float vol = readAdc();
-    Serial.print("instant v:"); Serial.println(vol);
     if(count < 5){
         ready = false;
         count++;
@@ -44,7 +45,6 @@ void Battery::iterate(){
     else{
         count = 0;
         voltaje = temp_voltaje/5.0;
-        Serial.print("v:"); Serial.println(voltaje);
         temp_voltaje = 0;
         ready = true;
     }
