@@ -103,14 +103,13 @@ void setup() {
   BLEDevice::startAdvertising();
 
   tft.splash();
-  delay(1000);
-  camera.change(true);
-  delay(300);
-  camera.change(false);
-  delay(700);
+  delay(2000);
   tft.splash(true);
   tft.initScreen();
   delay(3000);
+  camera.change(true);
+  delay(300);
+  camera.change(false);
   tft.initScreen(true);
   tft.base();
 }
