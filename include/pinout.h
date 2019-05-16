@@ -14,9 +14,14 @@
 #define TFT_DC  10
 #define TFT_RST 9
 // IMU 
-#define IMU_CS 21
-#define IMU_RST 22
+#define IMU_CS 22
+#define IMU_RST 21
 #define IMU_DR 0
+
+// SPI PINS
+#define ESP_MOSI 23
+#define ESP_MISO 19
+#define ESP_SCLK 18
 
 void setIO(){
     pinMode(TRIGGER_OUTPUT, OUTPUT);
