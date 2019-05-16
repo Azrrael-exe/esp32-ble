@@ -5,14 +5,14 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
+#include <pinout.h>
+#include <ADIS16209.h>
 #include <callbacks.h>
 #include <screen_handler.h>
-#include <ADIS16209.h>
-#include <pinout.h>
 
 #include <battery.h>
-
 #include <io.h>
+#include <SPI.h>
 
 IO laser = IO(NULL, LASER_INPUT);
 IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
@@ -24,7 +24,7 @@ IO battery_ready = IO(NULL, BREADY_INPUT);
 
 Battery battery = Battery(BATTERY_INPUT);
 
-ADIS16209 INCL(IMU_CS, IMU_DR, IMU_RST);
+ADIS16209 INCL= ADIS16209(IMU_CS, IMU_DR, IMU_RST);
 ScreenHandler tft = ScreenHandler(TFT_CS, TFT_DC, TFT_RST);
 
 int INCX = 0;
@@ -49,19 +49,18 @@ int val = 0;
 
 void setup() {
   Serial.begin(115200);
-
-  setIO();
-     
+  
   tft.init(BLACK);
-
   INCL.configSPI();
   delay(100);                   // Give the part time to start up
-  INCL.regWrite(MSC_CTRL,0x6);  // Enable Data Ready on INCL
+  INCL.regWrite(MSC_CTRL, 0x6);  // Enable Data Ready on INCL
   delay(20);
-  INCL.regWrite(AVG_CNT,0x8);   // Set Digital Filter on INCL
+  INCL.regWrite(AVG_CNT, 0x8);   // Set Digital Filter on INCL
   delay(20);
-  INCL.regWrite(SMPL_PRD,0x14), // Set Decimation on INCL
+  INCL.regWrite(SMPL_PRD, 0x14), // Set Decimation on INCL
   delay(20);
+
+  setIO();
   
   BLEDevice::init("ESP32");
   server = BLEDevice::createServer();
@@ -103,16 +102,15 @@ void setup() {
   BLEDevice::startAdvertising();
 
   tft.splash();
-  delay(1000);
-  camera.change(true);
-  delay(300);
-  camera.change(false);
-  delay(700);
+  delay(2000);
   tft.splash(true);
   tft.initScreen();
-  delay(3000);
+  camera.change(true);
+  delay(4000);
+  camera.change(false);
   tft.initScreen(true);
   tft.base();
+
 }
 
 void loop() {
@@ -137,7 +135,10 @@ void loop() {
     INCX = INCL.regRead(XINCL_OUT);
     INCY = INCL.regRead(YINCL_OUT);
     INCX = INCL.inclineScale(INCX);
-    INCY = INCL.inclineScale(INCY);   
+    INCY = INCL.inclineScale(INCY);
+    Serial.print("X: ");Serial.println(INCX);
+    Serial.print("Y: ");Serial.println(INCY);
+    Serial.println("--- --- ---");   
   }
 
   // --- Laser read Task ---
