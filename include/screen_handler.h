@@ -27,6 +27,7 @@ class ScreenHandler: public Adafruit_SSD1351 {
         void laser(bool clear, int color);
         void imageTaken(bool clear, int color);
         void imageTransfer(bool clear, int color);
+        void charging(int state);
         void splash(bool clear);
         void battery(int value);
         void updateTimer();
@@ -57,13 +58,6 @@ void ScreenHandler::initScreen(bool clear=false, int color=WHITE){
         this->print("System");
         this->setCursor(22,41);
         this->print("Starting");
-        this->setTextSize(1);
-        this->setCursor(95, 112);
-        this->setTextColor(WHITE);
-        char buffer[5];
-        sprintf(buffer, "B:00%%");
-        this->print(buffer);
-        this->setTextSize(2);
     }
     else {
         this->fillRect(22,20, 114, 57, backgroud);
@@ -77,9 +71,16 @@ void ScreenHandler::base(bool clear=false, int color=WHITE){
         this->print("System");
         this->setCursor(39,41);
         this->print("Ready");
+        this->setTextSize(1);
+        this->setCursor(95, 112);
+        this->setTextColor(WHITE);
+        char buffer[5];
+        sprintf(buffer, "B:00%%");
+        this->print(buffer);
+        this->setTextSize(2);
     }
     else {
-        this->fillRect(34,20, 94, 57, backgroud);
+        this->fillRect(34, 20, 94, 57, backgroud);
     }
     this->state = 0;
 }
@@ -107,13 +108,34 @@ void ScreenHandler::laser(bool clear=false, int color=RED){
 }
 
 void ScreenHandler::battery(int value){
-    this->fillRect(105, 112, 115, 120, backgroud);
+    this->fillRect(105, 112, 23, 8, backgroud);
     this->setTextSize(1);
-    this->setCursor(105, 112);
+    this->setCursor(95, 112);
     this->setTextColor(WHITE);
-    char buffer[3];
-    sprintf(buffer, "%02i%%", value);
+    char buffer[5];
+    sprintf(buffer, "B:%02i%%", value);
     this->print(buffer);
+    this->setTextSize(2);
+}
+
+void ScreenHandler::charging(int state = 0){
+    this->fillRect(55, 102, 69, 8, BLACK);
+    this->setTextSize(1);
+    switch (state) {
+    case 1: // Charging
+        this->setCursor(75, 102);
+        this->setTextColor(RED);
+        this->print("Charging");
+        break;
+    case 2: // Full Charge
+        this->setCursor(55, 102);
+        this->setTextColor(GREEN);
+        this->print("Full Charge");
+        break;
+    default: // Clear
+        this->fillRect(55, 102, 69, 8, BLACK);
+        break;
+    }
     this->setTextSize(2);
 }
 
