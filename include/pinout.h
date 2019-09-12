@@ -1,21 +1,21 @@
-#define TRIGGER_INPUT 12
-#define LASER_INPUT 13
+#define TRIGGER_INPUT 25
+#define LASER_INPUT 27
 
-#define TRIGGER_OUTPUT 25
-#define FLASH_OUTPUT 26
-#define CAMERA_OUTPUT 32
+#define TRIGGER_OUTPUT 26
+#define FLASH_OUTPUT 32
+#define CAMERA_OUTPUT 33
 
-#define BATTERY_INPUT 27
-#define CHARGING_INPUT 37
-#define BREADY_INPUT 38
+#define BATTERY_INPUT 35
+#define CHARGING_INPUT 38
+#define BREADY_INPUT 37
 
 // SCREEN
-#define TFT_CS  5
-#define TFT_DC  10
-#define TFT_RST 9
+#define TFT_CS  21
+#define TFT_DC  2
+#define TFT_RST 15
 // IMU 
-#define IMU_CS 22
-#define IMU_RST 21
+#define IMU_CS 10
+#define IMU_RST 14
 #define IMU_DR 0
 
 // SPI PINS

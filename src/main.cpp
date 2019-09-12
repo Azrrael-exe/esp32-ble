@@ -102,7 +102,7 @@ void setup() {
   BLEDevice::startAdvertising();
 
   tft.splash();
-  delay(2000);
+  delay(3000);
   tft.splash(true);
   tft.initScreen();
   camera.change(true);
@@ -184,7 +184,7 @@ void loop() {
   }
 
   if(state == 2){
-    if((flash.readTimer()>=10) && (!flash.isActive())){
+    if((flash.readTimer()>=16) && (!flash.isActive())){
       Serial.println("flash on!");
       flash.change(true);
       flash.updateTimer();
