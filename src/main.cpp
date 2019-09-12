@@ -14,10 +14,12 @@
 #include <io.h>
 #include <SPI.h>
 
-IO laser = IO(NULL, LASER_INPUT);
+IO laser = IO(LASER_OUTPUT, LASER_INPUT);
 IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
 IO flash = IO(FLASH_OUTPUT, NULL);
-IO camera = IO(CAMERA_OUTPUT, NULL);
+IO camera_left = IO(CAMERA_LEFT_OUTPUT, NULL);
+IO camera_rigth = IO(CAMERA_RIGHT_OUTPUT, NULL);
+IO usb = IO(USB_OUTPUT, USB_INPUT);
 
 IO charging = IO(NULL ,CHARGING_INPUT);
 IO battery_ready = IO(NULL, BREADY_INPUT);
@@ -105,9 +107,13 @@ void setup() {
   delay(3000);
   tft.splash(true);
   tft.initScreen();
-  camera.change(true);
-  delay(4000);
-  camera.change(false);
+  camera_left.change(true);
+  delay(500);
+  camera_rigth.change(true);
+  delay(3500);
+  camera_left.change(false);
+  delay(500);
+  camera_rigth.change(false);
   tft.initScreen(true);
   tft.base();
 
@@ -143,9 +149,9 @@ void loop() {
   }
 
   // --- Laser read Task ---
-  if(laser.hasChanged()){
-    Serial.println(laser.readInput());
-    tft.laser(!laser.readInput());
+  if(laser.hasChanged() && laser.readInput()){
+    laser.swap();
+    tft.laser(laser.isActive());
   }
 
   // --- Camera Trigger ---

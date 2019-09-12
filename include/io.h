@@ -7,6 +7,7 @@ class IO {
         long readTimer();
         bool readInput();
         bool hasChanged();
+        void swap();
         bool activate;
     private:
         bool output_state;
@@ -25,6 +26,10 @@ IO::IO(int opin, int ipin){
     pinMode(opin, OUTPUT);
     pinMode(ipin, INPUT);
     digitalWrite(this->opin, this->output_state);
+}
+
+void IO::swap(){
+    this->change(!this->output_state);
 }
 
 void IO::change(bool state){
