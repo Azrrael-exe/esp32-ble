@@ -11,8 +11,8 @@
 #define CHARGING_INPUT 38
 #define BREADY_INPUT 37
 
-#define USB_INPUT 00
-#define USB_OUTPUT 00
+#define USB_INPUT 5
+#define USB_OUTPUT 4
 
 // SCREEN
 #define TFT_CS  21
@@ -48,4 +48,7 @@ void setIO(){
 
     pinMode(IMU_CS, OUTPUT);
     pinMode(IMU_RST, OUTPUT);
+
+    pinMode(USB_INPUT, INPUT);
+    pinMode(USB_OUTPUT, OUTPUT);
 }

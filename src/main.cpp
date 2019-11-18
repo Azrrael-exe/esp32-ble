@@ -178,6 +178,16 @@ void loop() {
     tft.charging(charging_state);
   }
 
+  // --- USB Loading ---
+  if(usb.hasChanged()){
+    if(usb.readInput()){
+      usb.change(true);
+    }
+    else{
+      usb.change(false);
+    }
+  }
+
   // --- Battery Full ---
   
   if(state == 1){
