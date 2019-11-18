@@ -25,6 +25,7 @@ class ScreenHandler: public Adafruit_SSD1351 {
         void base(bool clear, int color);
         void initScreen(bool clear, int color);
         void laser(bool clear, int color);
+        void usb(bool clear, int color);
         void imageTaken(bool clear, int color);
         void imageTransfer(bool clear, int color);
         void charging(int state);
@@ -104,6 +105,19 @@ void ScreenHandler::laser(bool clear=false, int color=RED){
     }
     else {
         this->fillRect(4, 112, 54, 120, backgroud);
+    }
+}
+
+void ScreenHandler::usb(bool clear=false, int color=WHITE){
+    if(!clear){
+        this->setTextSize(1);
+        this->setCursor(4,112);
+        this->setTextColor(color);
+        this->print("USB Donwload!");
+        this->setTextSize(2);
+    }
+    else {
+        this->fillRect(4, 112, 69, 120, backgroud);
     }
 }
 
