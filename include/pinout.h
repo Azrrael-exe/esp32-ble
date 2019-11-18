@@ -5,14 +5,14 @@
 #define TRIGGER_OUTPUT 26
 #define FLASH_OUTPUT 32
 #define CAMERA_LEFT_OUTPUT 33
-#define CAMERA_RIGHT_OUTPUT 4
+// #define CAMERA_RIGHT_OUTPUT 4
 
 #define BATTERY_INPUT 35
-#define CHARGING_INPUT 38
+#define CHARGING_INPUT 34
 #define BREADY_INPUT 37
 
-#define USB_INPUT 00
-#define USB_OUTPUT 00
+#define USB_INPUT 38
+#define USB_OUTPUT 4
 
 // SCREEN
 #define TFT_CS  21
@@ -32,7 +32,7 @@ void setIO(){
     pinMode(TRIGGER_OUTPUT, OUTPUT);
     pinMode(FLASH_OUTPUT, OUTPUT);
     pinMode(CAMERA_LEFT_OUTPUT, OUTPUT);
-    pinMode(CAMERA_RIGHT_OUTPUT, OUTPUT);
+    // pinMode(CAMERA_RIGHT_OUTPUT, OUTPUT);
     pinMode(LASER_OUTPUT, OUTPUT);
 
     pinMode(BATTERY_INPUT, INPUT);
@@ -48,4 +48,7 @@ void setIO(){
 
     pinMode(IMU_CS, OUTPUT);
     pinMode(IMU_RST, OUTPUT);
+
+    pinMode(USB_INPUT, INPUT);
+    pinMode(USB_OUTPUT, OUTPUT);
 }

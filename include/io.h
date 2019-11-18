@@ -1,6 +1,6 @@
 class IO {
     public:
-        IO(int ipin, int opin);
+        IO(int ipin, int opin, bool inverted);
         void change(bool value);
         bool isActive();
         void updateTimer();
@@ -18,10 +18,10 @@ class IO {
         bool has_changed;
 };
 
-IO::IO(int opin, int ipin){
+IO::IO(int opin, int ipin, bool inverted=false){
     this->opin = opin;
     this->ipin = ipin;
-    this->output_state = false;
+    this->output_state = inverted;
     this->activate = false;
     pinMode(opin, OUTPUT);
     pinMode(ipin, INPUT);

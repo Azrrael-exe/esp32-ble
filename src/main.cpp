@@ -14,11 +14,11 @@
 #include <io.h>
 #include <SPI.h>
 
-IO laser = IO(LASER_OUTPUT, LASER_INPUT);
+IO laser = IO(LASER_OUTPUT, LASER_INPUT, true);
 IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
 IO flash = IO(FLASH_OUTPUT, NULL);
 IO camera_left = IO(CAMERA_LEFT_OUTPUT, NULL);
-IO camera_rigth = IO(CAMERA_RIGHT_OUTPUT, NULL);
+// IO camera_rigth = IO(CAMERA_RIGHT_OUTPUT, NULL);
 IO usb = IO(USB_OUTPUT, USB_INPUT);
 
 IO charging = IO(NULL ,CHARGING_INPUT);
@@ -109,11 +109,11 @@ void setup() {
   tft.initScreen();
   camera_left.change(true);
   delay(500);
-  camera_rigth.change(true);
+  // camera_rigth.change(true);
   delay(3500);
   camera_left.change(false);
-  delay(500);
-  camera_rigth.change(false);
+  // delay(500);
+  // camera_rigth.change(false);
   tft.initScreen(true);
   tft.base();
 
@@ -176,6 +176,18 @@ void loop() {
       charging_state = 1;
     }
     tft.charging(charging_state);
+  }
+
+  // --- USB Loading ---
+  if(usb.hasChanged()){
+    if(usb.readInput()){
+      usb.change(true);
+      tft.usb();
+    }
+    else{
+      usb.change(false);
+      tft.usb(true);
+    }
   }
 
   // --- Battery Full ---
