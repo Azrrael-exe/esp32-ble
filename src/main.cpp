@@ -19,7 +19,7 @@ IO trigger = IO(TRIGGER_OUTPUT, TRIGGER_INPUT);
 IO flash = IO(FLASH_OUTPUT, NULL);
 IO camera_left = IO(CAMERA_LEFT_OUTPUT, NULL);
 // IO camera_rigth = IO(CAMERA_RIGHT_OUTPUT, NULL);
-IO usb = IO(USB_OUTPUT, USB_INPUT);
+IO usb = IO(USB_OUTPUT, USB_INPUT, true);
 
 IO charging = IO(NULL ,CHARGING_INPUT);
 IO battery_ready = IO(NULL, BREADY_INPUT);
